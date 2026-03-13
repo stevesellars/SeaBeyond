@@ -410,15 +410,18 @@ footer{background:var(--navy-nav);padding:2.5rem 5rem;display:flex;align-items:c
       <div class="modal-eyebrow">Get in Touch</div>
       <h2 class="modal-title">Let's Talk About<br><em>Your Program</em></h2>
       <p class="modal-sub">Tell us a little about yourself and we'll be in touch within one business day.</p>
-      <div id="sbi-form">
+      <form id="sbi-form" action="https://api.web3forms.com/submit" method="POST">
+        <input type="hidden" name="access_key" value="d05726cb-b752-4a4f-a5a5-60b757b0a33e" />
+        <input type="hidden" name="subject" value="SeaBeyond Website Inquiry" />
+        <input type="hidden" name="botcheck" value="" style="display:none" />
         <div class="form-row">
-          <div class="fg"><label>First Name *</label><input type="text" id="sbi-fname" placeholder="Jane" /></div>
-          <div class="fg"><label>Last Name *</label><input type="text" id="sbi-lname" placeholder="Smith" /></div>
+          <div class="fg"><label>First Name *</label><input type="text" name="first_name" id="sbi-fname" placeholder="Jane" required /></div>
+          <div class="fg"><label>Last Name *</label><input type="text" name="last_name" id="sbi-lname" placeholder="Smith" required /></div>
         </div>
-        <div class="fg"><label>Email Address *</label><input type="email" id="sbi-email" placeholder="jane@cruiseline.com" /></div>
-        <div class="fg"><label>Message</label><textarea id="sbi-message" placeholder="Tell us about your program or what you're looking for..."></textarea></div>
-        <button class="fsub" id="sbi-submit">Send Message</button>
-      </div>
+        <div class="fg"><label>Email Address *</label><input type="email" name="email" id="sbi-email" placeholder="jane@cruiseline.com" required /></div>
+        <div class="fg"><label>Message</label><textarea name="message" id="sbi-message" placeholder="Tell us about your program or what you're looking for..."></textarea></div>
+        <button type="submit" class="fsub" id="sbi-submit">Send Message</button>
+      </form>
     </div>
 
   <div class="success-view" id="sbi-success">
@@ -451,41 +454,25 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   document.getElementById("sbi-close").addEventListener("click", closeModal);
-
   overlay.addEventListener("click", function(e) {
     if (e.target === overlay) closeModal();
   });
-
   document.addEventListener("keydown", function(e) {
     if (e.key === "Escape") closeModal();
   });
 
-  // Submit via fetch to Web3Forms
-  document.getElementById("sbi-submit").addEventListener("click", function() {
-    var fname   = document.getElementById("sbi-fname").value.trim();
-    var lname   = document.getElementById("sbi-lname").value.trim();
-    var email   = document.getElementById("sbi-email").value.trim();
-    var message = document.getElementById("sbi-message").value.trim();
-
-    if (!fname || !lname || !email) {
-      alert("Please fill in your name and email address.");
-      return;
-    }
-
+  // Intercept form submit
+  document.getElementById("sbi-form").addEventListener("submit", function(e) {
+    e.preventDefault();
     var btn = document.getElementById("sbi-submit");
     btn.textContent = "Sending...";
     btn.disabled = true;
 
+    var formData = new FormData(this);
+
     fetch("https://api.web3forms.com/submit", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        access_key: "d05726cb-b752-4a4f-a5a5-60b757b0a33e",
-        subject: "SeaBeyond Website Inquiry",
-        name: fname + " " + lname,
-        email: email,
-        message: message || "(no message)"
-      })
+      body: formData
     })
     .then(function(res) { return res.json(); })
     .then(function(data) {
@@ -496,9 +483,7 @@ document.addEventListener("DOMContentLoaded", function() {
           closeModal();
           document.getElementById("sbi-form-view").style.display = "block";
           document.getElementById("sbi-success").style.display = "none";
-          ["sbi-fname","sbi-lname","sbi-email","sbi-message"].forEach(function(id) {
-            document.getElementById(id).value = "";
-          });
+          document.getElementById("sbi-form").reset();
           btn.textContent = "Send Message";
           btn.disabled = false;
         }, 4000);
