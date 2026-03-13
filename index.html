@@ -413,14 +413,14 @@ footer{background:var(--navy-nav);padding:2.5rem 5rem;display:flex;align-items:c
       <form id="sbi-form" action="https://api.web3forms.com/submit" method="POST">
         <input type="hidden" name="access_key" value="d05726cb-b752-4a4f-a5a5-60b757b0a33e" />
         <input type="hidden" name="subject" value="SeaBeyond Website Inquiry" />
-        <input type="hidden" name="botcheck" value="" style="display:none" />
+        <input type="hidden" name="redirect" value="https://stevesellars.github.io/SeaBeyond?sent=1" />
         <div class="form-row">
-          <div class="fg"><label>First Name *</label><input type="text" name="first_name" id="sbi-fname" placeholder="Jane" required /></div>
-          <div class="fg"><label>Last Name *</label><input type="text" name="last_name" id="sbi-lname" placeholder="Smith" required /></div>
+          <div class="fg"><label>First Name *</label><input type="text" name="first_name" placeholder="Jane" required /></div>
+          <div class="fg"><label>Last Name *</label><input type="text" name="last_name" placeholder="Smith" required /></div>
         </div>
-        <div class="fg"><label>Email Address *</label><input type="email" name="email" id="sbi-email" placeholder="jane@cruiseline.com" required /></div>
-        <div class="fg"><label>Message</label><textarea name="message" id="sbi-message" placeholder="Tell us about your program or what you're looking for..."></textarea></div>
-        <button type="submit" class="fsub" id="sbi-submit">Send Message</button>
+        <div class="fg"><label>Email Address *</label><input type="email" name="email" placeholder="jane@cruiseline.com" required /></div>
+        <div class="fg"><label>Message</label><textarea name="message" placeholder="Tell us about your program or what you're looking for..."></textarea></div>
+        <button type="submit" class="fsub">Send Message</button>
       </form>
     </div>
 
@@ -461,44 +461,18 @@ document.addEventListener("DOMContentLoaded", function() {
     if (e.key === "Escape") closeModal();
   });
 
-  // Intercept form submit
-  document.getElementById("sbi-form").addEventListener("submit", function(e) {
-    e.preventDefault();
-    var btn = document.getElementById("sbi-submit");
-    btn.textContent = "Sending...";
-    btn.disabled = true;
-
-    var formData = new FormData(this);
-
-    fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      body: formData
-    })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.success) {
-        document.getElementById("sbi-form-view").style.display = "none";
-        document.getElementById("sbi-success").style.display = "block";
-        setTimeout(function() {
-          closeModal();
-          document.getElementById("sbi-form-view").style.display = "block";
-          document.getElementById("sbi-success").style.display = "none";
-          document.getElementById("sbi-form").reset();
-          btn.textContent = "Send Message";
-          btn.disabled = false;
-        }, 4000);
-      } else {
-        alert("Something went wrong. Please try again.");
-        btn.textContent = "Send Message";
-        btn.disabled = false;
-      }
-    })
-    .catch(function() {
-      alert("Connection error. Please try again.");
-      btn.textContent = "Send Message";
-      btn.disabled = false;
-    });
-  });
+  // If redirected back after successful submission, show success screen
+  if (window.location.search.indexOf("sent=1") > -1) {
+    openModal();
+    document.getElementById("sbi-form-view").style.display = "none";
+    document.getElementById("sbi-success").style.display = "block";
+    setTimeout(function() {
+      closeModal();
+      document.getElementById("sbi-form-view").style.display = "block";
+      document.getElementById("sbi-success").style.display = "none";
+      history.replaceState({}, "", window.location.pathname);
+    }, 4000);
+  }
 
   // Scroll reveal
   var obs = new IntersectionObserver(function(entries) {
